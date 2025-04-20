@@ -28,35 +28,45 @@ class CategoryController extends Controller
 
         $category = Category::create($validated);
 
-        Storage::disk("public")->putFileAs("/uploads", $request->file("image"), "$category->id.$extension");
+        Storage::disk("public")->putFileAs("/uploads/categories", $request->file("image"), "$category->id.$extension");
 
         return $this->Created($category);
     }
 
     public function update(Request $request, Category $category){
         $validator = validator()->make($request->all(), [
-            "name" => "required|max:255|unique:categories,name,$category->id|string",
-            "image" => "required|image"
+            "name" => "sometimes|max:255|unique:categories,name,$category->id|string",
+            "image" => "sometimes|image"
         ]);
 
         if ($validator->fails()){
             return $this->BadRequest($validator);
         }
+
         $validated = $validator->validated();
-        $extension = $request->file("image")->getClientOriginalExtension();
-        $validated['extension'] = $extension;
+
+        if ($request->hasFile("image")) {
+            $extension = $request->file("image")->getClientOriginalExtension();
+            $validated['extension'] = $extension;
+            Storage::disk("public")->putFileAs("/uploads/categories", $request->file("image"), "$category->id.$extension");
+        }
 
         $category->update($validated);
 
-        Storage::disk("public")->putFileAs("/uploads", $request->file("image"), "$category->id.$extension");
-
         return $this->Ok($category, "Updated!");
     }
-    public function destroy(Category $category){
+    
+    public function destroy(Request $request, $categoryId)
+    {
+        $category = Category::find($categoryId);
+
+        if (!$category) {
+            return $this->NotFound("Category not found!");
+        }
 
         $category->delete();
 
-        return $this->Ok(null, "Deleted!");
+        return $this->Ok(null, "Category deleted successfully!");
     }
 
     public function show(Category $category){

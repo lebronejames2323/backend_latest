@@ -27,13 +27,15 @@ Route::group(["prefix"=> "carts"], function() {
     Route::patch("/{cart}/update-product", [CartController::class, "updateProductQuantity"]);
 });
 
+Route::get('/admin/orders', [OrderController::class, 'getAllOrders']);
+
 Route::group(["prefix"=> "orders"], function() {
     Route::get("/", [OrderController::class,"index"])->middleware("auth:sanctum");
     Route::post("/", [OrderController::class,"store"])->middleware("auth:sanctum");
     Route::get("/{order}", [OrderController::class, "show"])->middleware("auth:sanctum");
+    Route::patch('/{orderId}/status', [OrderController::class, 'updateOrderStatus'])->middleware("auth:sanctum");
 });
 
-Route::get("profile", [AuthController::class,"indexs"]);
 Route::get("user", [AuthController::class,"index"]);
 Route::get("user/{id}", [AuthController::class,"show"]);
 Route::patch("user/{id}", [AuthController::class,"update"]);
@@ -44,18 +46,18 @@ Route::post("/register", [AuthController::class, "register"]);
 Route::get("/user", [AuthController::class, "checkToken"])->middleware("auth:sanctum");
 Route::post("/logout", [AuthController::class, "logout"])->middleware("auth:sanctum");
 
-Route::group(["middleware" => "auth:sanctum", 'prefix' => "categories"], function (){
+Route::group(['prefix' => "categories"], function (){
     Route::get("/", [CategoryController::class,"index"]);
     Route::get("/{category}", [CategoryController::class,"show"]);
     Route::post("/", [CategoryController::class,"store"]);
-    Route::patch("/{category}", [CategoryController::class,"update"]);
-    Route::delete("/{category}", [CategoryController::class,"destroy"]);
+    Route::patch("/{category}", [CategoryController::class,"update"])->middleware("auth:sanctum");
+    Route::delete("/{categoryId}", [CategoryController::class,"destroy"])->middleware("auth:sanctum");
 });
 
-Route::group(["middleware" => "auth:sanctum", 'prefix' => "products"], function (){
+Route::group(['prefix' => "products"], function (){
     Route::get("/", [ProductController::class,"index"]);
     Route::get("/{product}", [ProductController::class,"show"]);
     Route::post("/", [ProductController::class,"store"]);
-    Route::patch("/{product}", [ProductController::class,"update"]);
-    Route::delete("/{product}", [ProductController::class,"destroy"]);
+    Route::patch("/{product}", [ProductController::class,"update"])->middleware("auth:sanctum");
+    Route::delete("/{productId}", [ProductController::class,"destroy"])->middleware("auth:sanctum");
 });

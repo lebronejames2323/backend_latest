@@ -9,13 +9,6 @@ use Illuminate\Http\Request;
 class AuthController extends Controller
 {
 
-    public function indexs()
-    {
-        $profile = Profile::all();
-
-        return $this->Ok($profile);
-    }
-
     public function index()
     {
         $user = User::all();

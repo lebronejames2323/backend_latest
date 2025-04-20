@@ -16,6 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger("order_id");
             $table->integer("quantity");
             $table->decimal('price', 12, 2);
+            $table->timestamps();
+            $table->softDeletes();
 
             $table->primary(['product_id', 'order_id']);
         });

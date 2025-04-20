@@ -32,11 +32,11 @@ class ProductController extends Controller
         
         $product = Product::create($validated);
         
-        Storage::disk("public")->putFileAs("/uploads", $request->file("image"), "$product->id.$extension");
+        Storage::disk("public")->putFileAs("/uploads/products", $request->file("image"), "$product->id.$extension");
 
         return $this->Created($product);
     }
-    public function update(Request $request, Product $product){
+    public function update(Request $request, Product $product) {
         $validator = validator()->make($request->all(), [
             "name" => "sometimes|max:255|unique:products,name,$product->id|string",
             "description" => "sometimes|max:255|string",
@@ -45,26 +45,39 @@ class ProductController extends Controller
             "category_id" => "sometimes|exists:categories,id",
             "stock" => "sometimes|max:2000000000|min:1|int",
         ]);
-
+    
         if ($validator->fails()){
             return $this->BadRequest($validator);
         }
-
+    
         $validated = $validator->validated();
-        $extension = $request->file("image")->getClientOriginalExtension();
-        $validated['extension'] = $extension;
-        Storage::disk("public")->putFileAs("/uploads", $request->file("image"), "$product->id.$extension");
-
+    
+        if ($request->hasFile("image")) {
+            $extension = $request->file("image")->getClientOriginalExtension();
+            $validated['extension'] = $extension;
+            Storage::disk("public")->putFileAs("/uploads/products", $request->file("image"), "$product->id.$extension");
+        }
+    
         $product->update($validated);
-
+    
         return $this->Ok($product, "Updated!");
     }
-    public function destroy(Product $product){
+    
+    
+    
+    public function destroy(Request $request, $productId)
+    {
+        $product = Product::find($productId);
+
+        if (!$product) {
+            return $this->NotFound("Product not found!");
+        }
 
         $product->delete();
 
-        return $this->Ok(null, "Deleted!");
+        return $this->Ok(null, "Product deleted successfully!");
     }
+
 
     public function show(Product $product){
         $product->category;

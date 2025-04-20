@@ -10,6 +10,25 @@ use Illuminate\Support\Facades\Auth;
 class OrderController extends Controller
 {
 
+    public function getAllOrders()
+    {
+        try {
+            $orders = Order::with(['products' => function ($query) {
+                $query->withTrashed();
+            }, 'user.profile'])->get();
+
+            if ($orders->isEmpty()) {
+                return $this->Ok([], "No orders found.");
+            }
+
+            return $this->Ok($orders, "Orders retrieved successfully.");
+        } catch (\Exception $e) {
+            \Log::error('Error fetching all orders: ' . $e->getMessage());
+            return $this->BadRequest(null, "Something went wrong.");
+        }
+    }
+
+
     public function index()
     {
         try {
@@ -18,8 +37,10 @@ class OrderController extends Controller
             if (!$userId) {
                 return $this->Unauthorized("Unauthorized access.");
             }
-    
-            $orders = Order::with('products')->where('user_id', $userId)->get();
+
+            $orders = Order::with(['products' => function ($query) {
+                $query->withTrashed();
+            }])->where('user_id', $userId)->get();
     
             if ($orders->isEmpty()) {
                 return $this->Ok([], "No orders found for this user.");
@@ -33,10 +54,10 @@ class OrderController extends Controller
     }
 
     public function show(Order $order)
-{
-    $order->load('products');
-    return $this->Ok($order, "Orders retrieved with products.");
-}
+    {
+        $order->load('products');
+        return $this->Ok($order, "Orders retrieved with products.");
+    }
 
     public function store(Request $request){
         $validator = validator()->make($request->all(), [
@@ -50,7 +71,9 @@ class OrderController extends Controller
             return $this->BadRequest($validator);
         }
         
-        $order = $request->user()->orders()->create($validator->validated());
+        $order = $request->user()->orders()->create([
+            'order_status' => 'Order Placed'
+        ] + $validator->validated());
 
         $items = [];
         $products = Product::all();
@@ -58,7 +81,7 @@ class OrderController extends Controller
         foreach($request->products as $product){
             $p = $products->where("id", $product["id"])->first();
             $items[$product["id"]] = ["price" => $p->price, 
-            "quantity" => $product["quantity"],
+            "quantity" => $product["quantity"]
         ];
 
         $p->stock = $p->stock - $product["quantity"];
@@ -71,4 +94,27 @@ class OrderController extends Controller
 
         return $this->Created($order, "Order has been created!");
     }
+
+    public function updateOrderStatus(Request $request, $orderId)
+    {
+        $validator = validator()->make($request->all(), [
+            "order_status" => "required|string|max:255"
+        ]);
+
+        if ($validator->fails()) {
+            return $this->BadRequest($validator);
+        }
+
+        $order = Order::find($orderId);
+        if (!$order) {
+            return $this->NotFound("Order not found.");
+        }
+
+        $order->update([
+            'order_status' => $request->order_status
+        ]);
+
+        return $this->Ok($order, "Order status updated successfully.");
+    }
+
 }
