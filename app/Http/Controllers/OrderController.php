@@ -6,51 +6,42 @@ use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
 
     public function getAllOrders()
     {
-        try {
-            $orders = Order::with(['products' => function ($query) {
-                $query->withTrashed();
-            }, 'user.profile'])->get();
+        $orders = Order::with(['products' => function ($query) {
+            $query->withTrashed();
+        }, 'user.profile'])->get();
 
-            if ($orders->isEmpty()) {
-                return $this->Ok([], "No orders found.");
-            }
-
-            return $this->Ok($orders, "Orders retrieved successfully.");
-        } catch (\Exception $e) {
-            \Log::error('Error fetching all orders: ' . $e->getMessage());
-            return $this->BadRequest(null, "Something went wrong.");
+        if ($orders->isEmpty()) {
+            return $this->Ok([], "No orders found.");
         }
+
+        return $this->Ok($orders, "Orders retrieved successfully.");
     }
 
 
     public function index()
     {
-        try {
-            $userId = Auth::id();
-    
-            if (!$userId) {
-                return $this->Unauthorized("Unauthorized access.");
-            }
+        $userId = Auth::id();
 
-            $orders = Order::with(['products' => function ($query) {
-                $query->withTrashed();
-            }])->where('user_id', $userId)->get();
-    
-            if ($orders->isEmpty()) {
-                return $this->Ok([], "No orders found for this user.");
-            }
-    
-            return $this->Ok($orders, "Orders retrieved successfully.");
-        } catch (\Exception $e) {
-            \Log::error('Order fetching error: ' . $e->getMessage());
-            return $this->BadRequest(null, "Something went wrong.");
+        if (!$userId) {
+            return $this->Unauthorized("Unauthorized access.");
         }
+
+        $orders = Order::with(['products' => function ($query) {
+            $query->withTrashed();
+        }])->where('user_id', $userId)->get();
+
+        if ($orders->isEmpty()) {
+            return $this->Ok([], "No orders found for this user.");
+        }
+
+        return $this->Ok($orders, "Orders retrieved successfully.");
     }
 
     public function show(Order $order)
@@ -72,6 +63,7 @@ class OrderController extends Controller
         }
         
         $order = $request->user()->orders()->create([
+            'order_id' => strtoupper(Str::random(10)),
             'order_status' => 'Order Placed'
         ] + $validator->validated());
 

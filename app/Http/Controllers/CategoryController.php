@@ -16,7 +16,7 @@ class CategoryController extends Controller
     public function store(Request $request){
         $validator = validator()->make($request->all(), [
             "name" => "required|max:255|unique:categories|string",
-            "image" => "required|image"
+            "image" => "required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:4096"
         ]);
 
         if ($validator->fails()){
@@ -33,28 +33,34 @@ class CategoryController extends Controller
         return $this->Created($category);
     }
 
-    public function update(Request $request, Category $category){
+    public function update(Request $request, Category $category)
+    {
         $validator = validator()->make($request->all(), [
             "name" => "sometimes|max:255|unique:categories,name,$category->id|string",
-            "image" => "sometimes|image"
+            "image" => "sometimes|image|mimes:jpeg,png,jpg,gif,svg,webp|max:4096"
         ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return $this->BadRequest($validator);
         }
 
         $validated = $validator->validated();
 
         if ($request->hasFile("image")) {
+            $oldImagePath = "/uploads/categories/{$category->id}.{$category->extension}";
+            if (Storage::disk('public')->exists($oldImagePath)) {
+                Storage::disk('public')->delete($oldImagePath);
+            }
+
             $extension = $request->file("image")->getClientOriginalExtension();
             $validated['extension'] = $extension;
-            Storage::disk("public")->putFileAs("/uploads/categories", $request->file("image"), "$category->id.$extension");
+            Storage::disk("public")->putFileAs("/uploads/categories", $request->file("image"), "{$category->id}.$extension");
         }
-
         $category->update($validated);
 
         return $this->Ok($category, "Updated!");
     }
+
     
     public function destroy(Request $request, $categoryId)
     {

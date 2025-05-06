@@ -4,12 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
     use SoftDeletes;
     
-    protected $fillable = ['user_id', 'order_status'];
+    protected $fillable = ['user_id', 'order_status', 'order_id'];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($order) {
+            $order->order_id = strtoupper(Str::random(10));
+        });
+    }
 
     public function user()
     {

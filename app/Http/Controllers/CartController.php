@@ -11,24 +11,19 @@ class CartController extends Controller
 
     public function index()
     {
-        try {
-            $userId = Auth::id();
+        $userId = Auth::id();
 
-            if (!$userId) {
-                return $this->Unauthorized("Unauthorized access.");
-            }
-
-            $carts = Cart::with('products')->where('user_id', $userId)->get();
-
-            if ($carts->isEmpty()) {
-                return $this->Ok([], "No carts found for this user.");
-            }
-
-            return $this->Ok($carts, "Carts retrieved successfully.");
-        } catch (\Exception $e) {
-            \Log::error('Cart fetching error: ' . $e->getMessage());
-            return $this->BadRequest(null, "Something went wrong.");
+        if (!$userId) {
+            return $this->Unauthorized("Unauthorized access.");
         }
+
+        $carts = Cart::with('products')->where('user_id', $userId)->get();
+
+        if ($carts->isEmpty()) {
+            return $this->Ok([], "No carts found for this user.");
+        }
+
+        return $this->Ok($carts, "Carts retrieved successfully.");
     }
 
 
