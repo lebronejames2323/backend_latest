@@ -16,7 +16,7 @@ class ProductController extends Controller
     public function store(Request $request){
         $validator = validator()->make($request->all(), [
             "name" => "required|max:255|unique:products|string",
-            "description" => "required|max:255|string",
+            "description" => "required|max:2000|string",
             "price" => "required|numeric|max:999999999|min:0",
             "image" => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:4096',
             "category_id" => "required|exists:categories,id",
@@ -36,6 +36,7 @@ class ProductController extends Controller
 
         return $this->Created($product);
     }
+    
     public function update(Request $request, Product $product)
     {
         $validator = validator()->make($request->all(), [

@@ -61,7 +61,7 @@ class WishlistController extends Controller
     }
 
 
-        public function updateProductQuantity(Request $request, $wishlistId)
+    public function updateProductQuantity(Request $request, $wishlistId)
     {
         $validator = validator()->make($request->all(), [
             'product_id' => 'required|exists:products,id',

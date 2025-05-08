@@ -5,6 +5,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -66,3 +67,6 @@ Route::group(['prefix' => "products"], function (){
     Route::patch("/{product}", [ProductController::class,"update"])->middleware("auth:sanctum");
     Route::delete("/{productId}", [ProductController::class,"destroy"])->middleware("auth:sanctum");
 });
+
+Route::get('/reviews', [ReviewController::class, 'getAllReviews']);
+Route::post('/reviews', [ReviewController::class, 'store'])->middleware("auth:sanctum");
