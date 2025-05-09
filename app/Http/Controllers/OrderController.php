@@ -77,6 +77,7 @@ class OrderController extends Controller
         ];
 
         $p->stock = $p->stock - $product["quantity"];
+        $p->purchase_count = $p->purchase_count + $product["quantity"];
         $p->save();
         }
 

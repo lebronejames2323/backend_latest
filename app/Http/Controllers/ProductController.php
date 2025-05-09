@@ -29,6 +29,7 @@ class ProductController extends Controller
         $validated = $validator->validated();
         $extension = $request->file("image")->getClientOriginalExtension();
         $validated['extension'] = $extension;
+        $validated['purchase_count'] = 0;
         
         $product = Product::create($validated);
         

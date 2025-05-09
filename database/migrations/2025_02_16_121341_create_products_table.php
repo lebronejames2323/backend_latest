@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('description');
             $table->decimal('price', 16, 2);
             $table->integer('stock')->default(0);
+            $table->integer('purchase_count')->default(0);
             $table->string("extension")->nullable();
         
             $table->unsignedBigInteger("category_id");
