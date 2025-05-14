@@ -21,11 +21,8 @@ class ReviewController extends Controller
             ->whereHas('products', function ($query) use ($productId) {
                 $query->where('products.id', $productId);
             })
-            ->get();
-
-        if ($reviews->isEmpty()) {
-            return $this->Ok([], "No reviews found for this product.");
-        }
+            ->orderBy('created_at', 'desc')
+            ->paginate(5);
 
         return $this->Ok($reviews, "Reviews retrieved successfully.");
     }

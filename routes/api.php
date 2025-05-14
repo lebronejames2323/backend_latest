@@ -62,7 +62,7 @@ Route::group(['prefix' => "categories"], function (){
 
 Route::group(['prefix' => "products"], function (){
     Route::get("/", [ProductController::class,"index"]);
-    Route::get("/{product}", [ProductController::class,"show"]);
+    Route::get("/{productId}", [ProductController::class,"show"]);
     Route::post("/", [ProductController::class,"store"])->middleware("auth:sanctum");
     Route::patch("/{product}", [ProductController::class,"update"])->middleware("auth:sanctum");
     Route::delete("/{productId}", [ProductController::class,"destroy"])->middleware("auth:sanctum");
@@ -70,3 +70,6 @@ Route::group(['prefix' => "products"], function (){
 
 Route::get('/reviews', [ReviewController::class, 'getAllReviews']);
 Route::post('/reviews', [ReviewController::class, 'store'])->middleware("auth:sanctum");
+
+Route::get("/featured-products", [ProductController::class,"featured"]);
+Route::get("/recommended-products/{excludeProductId?}", [ProductController::class, "recommended"]);

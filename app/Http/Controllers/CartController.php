@@ -99,32 +99,37 @@ class CartController extends Controller
     }
 
 
-    public function store(Request $request){
+    public function store(Request $request) {
+        $user = Auth::user();
+        
         $validator = validator()->make($request->all(), [
             "products" => "required|array",
-            "products.*" => "array",
             "products.*.id" => "required|exists:products,id",
-            "products.*.quantity" => "required|min:1|max:1000000|int"
+            "products.*.quantity" => "required|min:1|max:1000000|int",
         ]);
 
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return $this->BadRequest($validator);
         }
-        
-        $cart = $request->user()->carts()->create($validator->validated());
 
-        $items = [];
+        $cart = $user->carts()->firstOrCreate(["user_id" => $user->id]);
 
-        foreach($request->products as $product){
-            $items[$product["id"]] = [
-            "quantity" => $product["quantity"],
-            ];
+        foreach ($request->products as $product) {
+            $existingItem = $cart->products()
+                ->wherePivot('product_id', $product["id"])
+                ->first();
+
+            if ($existingItem) {
+                return response()->json([ "message" => "It's already in the cart." ], 200);
+            }
+
+            $cart->products()->attach([
+                $product["id"] => [
+                    "quantity" => $product["quantity"],
+                ],
+            ]);
         }
 
-        $cart->products()->sync($items);
-
-        $cart->products;
-
-        return $this->Created($cart, "Cart has been added!");
+        return $this->Created($cart, "Product added to cart successfully!");
     }
 }

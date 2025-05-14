@@ -13,6 +13,36 @@ class ProductController extends Controller
         return $this->Ok($products);
     }
 
+    
+    public function show($productId){
+        $product = Product::with("category")->find($productId);
+
+        if (!$product) {
+            return response()->json(["message" => "Product not found"], 404);
+        }
+
+        return $this->Ok($product);
+    }
+
+    public function featured(){
+        $products = Product::with("category")
+        ->where("stock", ">", 0)
+        ->orderBy("purchase_count", "desc")
+        ->take(8)
+        ->get();
+        return $this->Ok($products);
+    }
+
+    public function recommended($excludeProductId = null) {
+        $products = Product::with("category")->where("id", "!=", $excludeProductId)->inRandomOrder()->limit(4)->get();
+
+        if ($products->isEmpty()) {
+            return response()->json(["message" => "No recommended products found"], 404);
+        }
+
+        return $this->Ok($products);
+    }
+
     public function store(Request $request){
         $validator = validator()->make($request->all(), [
             "name" => "required|max:255|unique:products|string",
@@ -84,12 +114,5 @@ class ProductController extends Controller
         $product->delete();
 
         return $this->Ok(null, "Product deleted successfully!");
-    }
-
-
-    public function show(Product $product){
-        $product->category;
-
-        return $this->Ok($product,"Retrieved!");
     }
 }

@@ -15,7 +15,7 @@ class OrderController extends Controller
     {
         $orders = Order::with(['products' => function ($query) {
             $query->withTrashed();
-        }, 'user.profile'])->get();
+        }, 'user.profile'])->orderBy('created_at', 'desc')->get();
 
         if ($orders->isEmpty()) {
             return $this->Ok([], "No orders found.");
@@ -35,7 +35,7 @@ class OrderController extends Controller
 
         $orders = Order::with(['products' => function ($query) {
             $query->withTrashed();
-        }])->where('user_id', $userId)->get();
+        }])->where('user_id', $userId)->orderBy('created_at', 'desc')->get();
 
         if ($orders->isEmpty()) {
             return $this->Ok([], "No orders found for this user.");
