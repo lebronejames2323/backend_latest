@@ -43,7 +43,7 @@ class CartController extends Controller
     public function deleteProduct(Request $request, $cartId)
     {
         $validator = validator()->make($request->all(), [
-            'product_id' => 'required|exists:products,id',
+            'product_id' => 'required|exists:products,id'
         ]);
 
         if ($validator->fails()) {
@@ -56,13 +56,23 @@ class CartController extends Controller
             return $this->NotFound("Cart not found!");
         }
 
-        $product = $cart->products()->where('product_id', $request->product_id)->first();
+        $productExists = $cart->products()
+            ->wherePivot('product_id', $request->product_id)
+            ->exists();
 
-        if (!$product) {
+        if (!$productExists) {
             return $this->NotFound("Product not found in cart!");
         }
 
-        $cart->delete();
+        $cart->products()->newPivotStatement()
+            ->where('product_id', $request->product_id)
+            ->delete();
+
+        $cart->refresh();
+
+        if ($cart->products()->count() === 0) {
+            $cart->delete();
+        }
 
         return $this->Ok(null, "Product deleted successfully from the cart!");
     }
@@ -120,7 +130,7 @@ class CartController extends Controller
                 ->first();
 
             if ($existingItem) {
-                return response()->json([ "message" => "It's already in the cart." ], 200);
+                return response()->json([ "message" => "Its already in the cart." ], 200);
             }
 
             $cart->products()->attach([
