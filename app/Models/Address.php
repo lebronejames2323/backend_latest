@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Profile extends Model
+class Address extends Model
 {
     protected $fillable = [
-        'first_name','last_name',"phone_number","address","second_address","third_address"
+        'user_id', 'full_name', 'phone_number', 'region', 'province', 'city', 'barangay', 'postal_code', 'street_address',
     ];
 
     public function user(){

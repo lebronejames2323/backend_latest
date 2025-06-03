@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Address;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
@@ -117,6 +118,18 @@ class DatabaseSeeder extends Seeder
             'last_name' => 'Istrator',
             'phone_number' => '09865464564',
             'address' => '135 Santolan Street Pasig City',
+        ]);
+
+        Address::create([
+            'user_id'      => $user->id,
+            'full_name'    => 'Admin Istrator',
+            'phone_number' => '09865464564',
+            'region'       => 'NCR',
+            'province'     => 'Metro Manila',
+            'city'         => 'Pasig City',
+            'barangay'     => 'Santolan',
+            'postal_code'  => '1600',
+            'street_address' => '135 Santolan Street, Pasig City',
         ]);
     }
 }

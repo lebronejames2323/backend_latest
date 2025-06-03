@@ -3,14 +3,36 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Storage;
+use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
     public function index(){
         $categories = Category::with('products')->get();
         return $this->Ok($categories);
+    }
+
+    public function categoriesPurchaseCount(){
+        $categories = Category::all();
+
+        $categorySales = [];
+
+        foreach ($categories as $category) {
+            $totalSales = $category->products->sum('purchase_count');
+
+            $categorySales[] = [
+                'category' => $category->name,
+                'total_sold' => $totalSales
+            ];
+        }
+
+        return $this->Ok([
+            'categories' => $categories,
+            'sales_by_category' => $categorySales
+        ]);
     }
 
     public function store(Request $request){

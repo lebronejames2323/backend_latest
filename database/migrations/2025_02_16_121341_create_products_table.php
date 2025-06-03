@@ -19,6 +19,10 @@ return new class extends Migration
             $table->integer('stock')->default(0);
             $table->integer('purchase_count')->default(0);
             $table->string("extension")->nullable();
+            $table->string("extension2")->nullable();
+            $table->string("extension3")->nullable();
+            $table->string("extension4")->nullable();
+            $table->string("extension5")->nullable();
         
             $table->unsignedBigInteger("category_id");
             $table->timestamps();

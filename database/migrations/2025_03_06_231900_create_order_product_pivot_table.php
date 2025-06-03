@@ -19,6 +19,8 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->primary(['product_id', 'order_id']);
+            $table->foreign("product_id")->references("id")->on("products")->onDelete("cascade");
+            $table->foreign("order_id")->references("id")->on("orders")->onDelete("cascade");
         });
     }
 

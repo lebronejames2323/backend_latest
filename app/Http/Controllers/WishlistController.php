@@ -49,15 +49,23 @@ class WishlistController extends Controller
             return $this->NotFound("Wishlist not found!");
         }
 
-        $product = $wishlist->products()->where('product_id', $request->product_id)->first();
+        $product = $wishlist->products()->wherePivot('product_id', $request->product_id)->first();
 
         if (!$product) {
-            return $this->NotFound("Product not found in cart!");
+            return $this->NotFound("Product not found in wishlist!");
         }
 
-        $wishlist->delete();
+        $wishlist->products()->newPivotStatement()
+            ->where('product_id', $request->product_id)
+            ->delete();
 
-        return $this->Ok(null, "Product deleted successfully from the cart!");
+        $wishlist->refresh();
+
+        if ($wishlist->products()->count() === 0) {
+            $wishlist->delete();
+        }
+
+        return $this->Ok(null, "Product removed successfully from wishlist!");
     }
 
 
@@ -103,21 +111,26 @@ class WishlistController extends Controller
         if ($validator->fails()){
             return $this->BadRequest($validator);
         }
-        
-        $wishlist = $request->user()->wishlists()->create($validator->validated());
 
-        $items = [];
+        $user = $request->user();
+        $wishlist = $user->wishlists()->firstOrCreate(["user_id" => $user->id]);
 
         foreach($request->products as $product){
-            $items[$product["id"]] = [
-            "quantity" => $product["quantity"],
-            ];
+            $existingItems = $wishlist->products()->pluck('id')->toArray();
+
+            if (in_array($product["id"], $existingItems)) {
+                return response()->json(["message" => "It's already in the wishlist."], 200);
+            }
+
+            $wishlist->products()->syncWithoutDetaching([
+                $product["id"] => [
+                    "quantity" => $product["quantity"],
+                ],
+            ]);
         }
 
-        $wishlist->products()->sync($items);
-
-        $wishlist->products;
-
-        return $this->Created($wishlist, "Wishlist has been added!");
+        return $this->Created($wishlist, "Product added to wishlist successfully!");
     }
+
+
 }

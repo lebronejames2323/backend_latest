@@ -9,6 +9,13 @@ use Illuminate\Http\Request;
 class AuthController extends Controller
 {
 
+    public function getNewUsersCount()
+    {
+        $newUsersCount = User::where('created_at', '>=', now()->subMonth())->count();
+
+        return $this->Ok(['new_users_count' => $newUsersCount], "New users count retrieved successfully.");
+    }
+
     public function index()
     {
         $user = User::all();
@@ -31,10 +38,12 @@ class AuthController extends Controller
             "username" => "required|alpha_dash|min:4|max:32|unique:users",
             "email"=> "required|unique:users|email|max:255",
             "password" => "required|min:8|max:64|confirmed",
-            "first_name" => "required|string|max:255",
-            "last_name" => "required|string|max:255",
-            "phone_number" => "required|string|max:255",
-            "address" => "required|string|max:500"
+            "first_name" => "sometimes|string|max:255",
+            "last_name" => "sometimes|string|max:255",
+            "phone_number" => "sometimes|string|max:15",
+            "address" => "sometimes|string|max:500",
+            "second_address" => "sometimes|string|max:500",
+            "third_address" => "sometimes|string|max:500",
         ]);
 
         if ($validator->fails()) {
@@ -72,10 +81,12 @@ class AuthController extends Controller
             "username" => "sometimes|alpha_dash|min:4|max:32|unique:users,username,$id",
             "email"=> "sometimes|unique:users,email,$id|email|max:255",
             "password" => "sometimes|min:8|max:64|confirmed",
-            "first_name" => "sometimes|string|max:255",
-            "last_name" => "sometimes|string|max:255",
-            "phone_number" => "sometimes|string|max:255",
-            "address" => "sometimes|string|max:255"
+            "first_name" => "nullable|sometimes|string|max:255",
+            "last_name" => "nullable|sometimes|string|max:255",
+            "phone_number" => "nullable|sometimes|string|max:255",
+            "address" => "nullable|sometimes|string|max:500",
+            "second_address" => "nullable|sometimes|string|max:500",
+            "third_address" => "nullable|sometimes|string|max:500",
         ]);
 
         if ($validator->fails()) {
@@ -84,8 +95,8 @@ class AuthController extends Controller
 
         $user->update($validator->validated());
 
-        if ($request->hasAny(['first_name', 'last_name', 'phone_number', 'address'])) {
-            $user->profile()->update($request->only(['first_name', 'last_name', 'phone_number', 'address']));
+        if ($request->hasAny(['first_name', 'last_name', 'phone_number', 'address', 'second_address', 'third_address'])) {
+            $user->profile()->update($request->only(['first_name', 'last_name', 'phone_number', 'address', 'second_address', 'third_address']));
         }
         
         return $this->Ok($user->load('profile'), "$user->username's information has been updated!");

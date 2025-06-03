@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
@@ -15,11 +16,15 @@ Route::post("/register", [AuthController::class, "register"]);
 Route::post("/logout", [AuthController::class, "logout"])->middleware("auth:sanctum");
 
 Route::group(["prefix" => "user", "middleware" => "auth:sanctum"], function () {
+    Route::get("/user-count", [AuthController::class, "getNewUsersCount"]);
     Route::get("/", [AuthController::class,"index"]);
     Route::get("/{id}", [AuthController::class,"show"]);
     Route::patch("/{id}", [AuthController::class,"update"]);
     Route::delete("/{id}", [AuthController::class,"destroy"]);
     Route::get("/", [AuthController::class, "checkToken"]);
+
+    Route::get("/{user}/addresses", [AddressController::class, "index"]);
+    Route::post("/{user}/addresses", [AddressController::class, "store"]);
 });
 
 
@@ -47,11 +52,14 @@ Route::group(["prefix" => "orders", "middleware" => "auth:sanctum"], function ()
     Route::post("/", [OrderController::class, "store"]);
     Route::get("/{order}", [OrderController::class, "show"]);
     Route::get('/admin/orders', [OrderController::class, 'getAllOrders']);
+    Route::get('/admin/recent-orders', [OrderController::class, 'getRecentOrders']);
     Route::patch("/{orderId}/status", [OrderController::class, "updateOrderStatus"]);
+    Route::delete("/{orderId}/cancel-order", [OrderController::class, "cancelOrder"]);
 });
 
 
 Route::group(['prefix' => "categories"], function (){
+    Route::get("/with-sold-count", [CategoryController::class,"categoriesPurchaseCount"]);
     Route::get("/", [CategoryController::class,"index"]);
     Route::get("/{category}", [CategoryController::class,"show"]);
     Route::post("/", [CategoryController::class,"store"])->middleware("auth:sanctum");
@@ -61,12 +69,14 @@ Route::group(['prefix' => "categories"], function (){
 
 
 Route::group(['prefix' => "products"], function (){
+    Route::get('/sales-data', [ProductController::class, 'getSalesData']);
     Route::get("/", [ProductController::class,"index"]);
     Route::get("/{productId}", [ProductController::class,"show"]);
     Route::post("/", [ProductController::class,"store"])->middleware("auth:sanctum");
     Route::patch("/{product}", [ProductController::class,"update"])->middleware("auth:sanctum");
     Route::delete("/{productId}", [ProductController::class,"destroy"])->middleware("auth:sanctum");
 });
+
 
 Route::get('/reviews', [ReviewController::class, 'getAllReviews']);
 Route::post('/reviews', [ReviewController::class, 'store'])->middleware("auth:sanctum");
