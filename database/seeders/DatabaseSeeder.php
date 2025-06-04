@@ -48,7 +48,7 @@ class DatabaseSeeder extends Seeder
         $products = [
             ['name' => 'GTX 1660 Super', 'description' => 'NVIDIA GPU 6GB Vram', 'price' => 11999.00, 'stock' => 42, 'extension' => 'jpg', 'category_name' => 'Graphics Card'],
             ['name' => 'Intel Core i5-10400K', 'description' => 'Intel Core CPU 10th gen', 'price' => 7800.00, 'stock' => 41, 'extension' => 'jpg', 'category_name' => 'Processor'],
-            ['name' => 'Dell 24 inch Full HD', 'description' => 'Dell Monitor IPS Display', 'price' => 7800.00, 'stock' => 1, 'extension' => 'jpg', 'category_name' => 'Monitor'],
+            ['name' => 'Dell 24 inch Full HD', 'description' => 'Dell Monitor IPS Display', 'price' => 7800.00, 'stock' => 12, 'extension' => 'jpg', 'category_name' => 'Monitor'],
             ['name' => 'RTX 4080 Super', 'description' => 'Gigabyte 16GB of Vram', 'price' => 68000.00, 'stock' => 48, 'extension' => 'webp', 'category_name' => 'Graphics Card'],
             ['name' => 'ASUS ROG RTX 4080', 'description' => 'ASUS ROG Strix Gaming 16GB of Vram', 'price' => 62000.00, 'stock' => 43, 'extension' => 'jpg', 'category_name' => 'Graphics Card'],
             ['name' => 'RTX 4090 Colorful', 'description' => 'MSI 16GB of Vram', 'price' => 94000.00, 'stock' => 42, 'extension' => 'jpg', 'category_name' => 'Graphics Card'],

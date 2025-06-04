@@ -7,9 +7,10 @@ use Illuminate\Http\Request;
 
 class AddressController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $addresses = Address::with('user')->get();
+        $userId = $request->user()->id;
+        $addresses = Address::where('user_id', $userId)->get();
         return $this->Ok($addresses, "Addresses retrieved successfully!");
     }
 
@@ -36,5 +37,19 @@ class AddressController extends Controller
         $address = Address::create($validator->validated());
 
         return $this->Created($address, "Address created successfully!");
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $userId = $request->user()->id;
+        $address = Address::where('id', $id)->where('user_id', $userId)->first();
+
+        if (!$address) {
+            return $this->NotFound("Address not found or does not belong to the user.");
+        }
+
+        $address->delete();
+
+        return $this->Ok([], "Address deleted successfully!");
     }
 }

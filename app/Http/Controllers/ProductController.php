@@ -4,12 +4,48 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Storage;
 use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
-    public function index(){
+    public function index(Request $request)
+    {
+        $perPage = $request->input('per_page', 12);
+        $search = $request->input('search');
+        $category = $request->input('category');
+
+        $query = Product::with('category')->orderBy('created_at', 'desc');
+
+        if (!empty($search)) {
+            $query->where(function ($query) use ($search) {
+                $query->where('name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('description', 'LIKE', '%' . $search . '%')
+                    ->orWhereHas('category', function ($categoryQuery) use ($search) {
+                      $categoryQuery->where('name', 'LIKE', '%' . $search . '%');
+                    });
+            });
+        }
+
+        if (!empty($category)) {
+            $query->where('category_id', $category);
+        }
+
+        $products = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $products->items(),
+            'pagination' => [
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
+            ]
+        ]);
+    }
+
+    public function allProducts(){
         $products = Product::with("category")->get();
         return $this->Ok($products);
     }
@@ -22,7 +58,16 @@ class ProductController extends Controller
             return response()->json(["message" => "Product not found"], 404);
         }
 
-        return $this->Ok($product);
+        $ratings = DB::table('review_product')
+            ->select(DB::raw('AVG(star_rating) as average_rating'), DB::raw('COUNT(*) as total_reviews'))
+            ->where('product_id', $productId)
+            ->first();
+
+        return response()->json([
+            'data' => $product,
+            'average_rating' => round($ratings->average_rating, 1) ?? 0,
+            'total_reviews' => $ratings->total_reviews ?? 0
+        ]);
     }
 
     public function featured(){
@@ -34,27 +79,28 @@ class ProductController extends Controller
         return $this->Ok($products);
     }
 
-    public function recommended($excludeProductId = null) {
-        $products = Product::with("category")->where("id", "!=", $excludeProductId)->inRandomOrder()->limit(4)->get();
-
-        if ($products->isEmpty()) {
-            return response()->json(["message" => "No recommended products found"], 404);
-        }
-
+    public function recommended(){
+        $products = Product::with("category")
+            ->where("stock", ">", 0)
+            ->inRandomOrder()
+            ->take(4)
+            ->get();
+            
         return $this->Ok($products);
     }
 
     public function getSalesData() {
-        $sales = Product::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, SUM(price * purchase_count) as total_revenue")
+        $sales = Product::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, SUM(price * purchase_count) as monthly_revenue")
             ->groupBy("month")
             ->orderBy("month", "ASC")
             ->get();
 
-        $totalIncome = Product::selectRaw("SUM(price * purchase_count) as total_income")->first();
+        $totalRevenue = Product::selectRaw("SUM(price * purchase_count) as total_revenue")->first();
+        $totalProductPrice = Product::selectRaw("SUM(price) as total_product_price")->first();
 
-        Log::info('Monthly & Total Income Data:', ['monthly_sales' => $sales, 'total_income' => $totalIncome->total_income]);
+        Log::info('Monthly & Total Revenue Data:', ['monthly_sales' => $sales, 'total_revenue' => $totalRevenue->total_revenue, 'total_product_price' => $totalProductPrice->total_product_price]);
 
-        return response()->json([ 'monthly_sales' => $sales, 'total_income' => $totalIncome->total_income ]);
+        return response()->json([ 'monthly_sales' => $sales, 'total_revenue' => $totalRevenue->total_revenue, 'total_product_price' => $totalProductPrice->total_product_price ]);
     }
 
     public function store(Request $request){

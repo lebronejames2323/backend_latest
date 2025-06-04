@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Storage;
 
 class ReviewController extends Controller
@@ -27,6 +28,15 @@ class ReviewController extends Controller
         return $this->Ok($reviews, "Reviews retrieved successfully.");
     }
 
+
+    public function getProductRating(Request $request){
+        $ratings = DB::table('review_product')
+        ->select('product_id', DB::raw('AVG(star_rating) as average_rating'))
+        ->groupBy('product_id')
+        ->get();
+
+        return response()->json($ratings);
+    }
 
     public function store(Request $request){
         $validator = validator()->make($request->all(), [

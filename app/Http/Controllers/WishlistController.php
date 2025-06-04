@@ -119,7 +119,7 @@ class WishlistController extends Controller
             $existingItems = $wishlist->products()->pluck('id')->toArray();
 
             if (in_array($product["id"], $existingItems)) {
-                return response()->json(["message" => "It's already in the wishlist."], 200);
+                return response()->json(["message" => "Its already in the wishlist."], 200);
             }
 
             $wishlist->products()->syncWithoutDetaching([
@@ -131,6 +131,4 @@ class WishlistController extends Controller
 
         return $this->Created($wishlist, "Product added to wishlist successfully!");
     }
-
-
 }

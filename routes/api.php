@@ -25,6 +25,7 @@ Route::group(["prefix" => "user", "middleware" => "auth:sanctum"], function () {
 
     Route::get("/{user}/addresses", [AddressController::class, "index"]);
     Route::post("/{user}/addresses", [AddressController::class, "store"]);
+    Route::delete("/addresses/{addressId}", [AddressController::class, "destroy"]);
 });
 
 
@@ -70,6 +71,7 @@ Route::group(['prefix' => "categories"], function (){
 
 Route::group(['prefix' => "products"], function (){
     Route::get('/sales-data', [ProductController::class, 'getSalesData']);
+    Route::get("/get-all", [ProductController::class,"allProducts"]);
     Route::get("/", [ProductController::class,"index"]);
     Route::get("/{productId}", [ProductController::class,"show"]);
     Route::post("/", [ProductController::class,"store"])->middleware("auth:sanctum");
@@ -79,7 +81,8 @@ Route::group(['prefix' => "products"], function (){
 
 
 Route::get('/reviews', [ReviewController::class, 'getAllReviews']);
+Route::get('/product-ratings', [ReviewController::class, 'getProductRating']);
 Route::post('/reviews', [ReviewController::class, 'store'])->middleware("auth:sanctum");
 
 Route::get("/featured-products", [ProductController::class,"featured"]);
-Route::get("/recommended-products/{excludeProductId?}", [ProductController::class, "recommended"]);
+Route::get("/recommended-products", [ProductController::class, "recommended"]);

@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('order_id')->unique();
             $table->string('delivery_address');
             $table->string('payment_method');
+            $table->string('full_name');
+            $table->string('phone_number');
             $table->timestamps();
             $table->softDeletes();
             

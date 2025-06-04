@@ -32,17 +32,54 @@ class OrderController extends Controller
     }
 
 
-    public function getAllOrders()
+    public function getAllOrders(Request $request)
     {
-        $orders = Order::withTrashed()->with(['products' => function ($query) {
-            $query->withTrashed();
-        }, 'user.profile'])->orderBy('created_at', 'desc')->get();
+        $perPage = $request->input('per_page', 10);
+        $status = $request->input('status');
+        $dateRange = $request->input('date_range');
+        $search = $request->input('search');
 
-        if ($orders->isEmpty()) {
-            return $this->Ok([], "No orders found.");
+        $query = Order::withTrashed()->with([
+            'products' => function ($query) {
+                $query->withTrashed();
+            },
+            'user.profile'
+        ])->orderBy('created_at', 'desc');
+
+        if (!empty($status)) {
+            $query->where('order_status', $status);
         }
 
-        return $this->Ok($orders, "Orders retrieved successfully.");
+        if (!empty($dateRange)) {
+            if ($dateRange === "today") {
+                $query->whereDate('created_at', now()->toDateString());
+            } elseif ($dateRange !== "all_time") {
+                $query->where('created_at', '>=', now()->subDays($dateRange));
+            }
+        }
+
+        if (!empty($search)) {
+            $query->where(function ($query) use ($search) {
+                $query->where('order_id', 'LIKE', '%' . $search . '%')
+                    ->orWhere('payment_method', 'LIKE', '%' . $search . '%')
+                    ->orWhere('full_name', 'LIKE', '%' . $search . '%')
+                    ->orWhereHas('products', function ($productQuery) use ($search) {
+                        $productQuery->where('name', 'LIKE', '%' . $search . '%');
+                    });
+            });
+        }
+
+        $orders = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $orders->items(),
+            'pagination' => [
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+            ]
+        ]);
     }
 
 
@@ -79,7 +116,9 @@ class OrderController extends Controller
             "products.*.id" => "required|exists:products,id",
             "products.*.quantity" => "required|min:1|max:1000000|int",
             "delivery_address" => "required|string|max:255",
-            "payment_method" => "required|string|max:50"
+            "payment_method" => "required|string|max:50",
+            "full_name" => "required|string|max:255",
+            "phone_number" => "required|string|max:20"
         ]);
 
         if ($validator->fails()){
@@ -91,7 +130,9 @@ class OrderController extends Controller
             'order_id' => strtoupper(Str::random(10)),
             'order_status' => 'Order Placed',
             'delivery_address' => $request->delivery_address,
-            'payment_method' => $request->payment_method
+            'payment_method' => $request->payment_method,
+            'full_name' => $request->full_name,
+            'phone_number' => $request->phone_number
         ] + $validator->validated());
 
 
@@ -147,6 +188,8 @@ class OrderController extends Controller
         if (!$order) {
             return $this->NotFound("Order not found or does not belong to you!");
         }
+
+        $order->update(['order_status' => 'Order Canceled']);
 
         foreach ($order->products as $product) {
             $product->stock += $product->pivot->quantity;
