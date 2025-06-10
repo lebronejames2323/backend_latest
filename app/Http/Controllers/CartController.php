@@ -116,6 +116,8 @@ class CartController extends Controller
             "products" => "required|array",
             "products.*.id" => "required|exists:products,id",
             "products.*.quantity" => "required|min:1|max:1000000|int",
+            "products.*.price" => "required|numeric|max:999999999|min:0",
+            "products.*.variation_id" => "nullable|exists:variations,id",
         ]);
 
         if ($validator->fails()) {
@@ -125,17 +127,21 @@ class CartController extends Controller
         $cart = $user->carts()->firstOrCreate(["user_id" => $user->id]);
 
         foreach ($request->products as $product) {
+
             $existingItem = $cart->products()
                 ->wherePivot('product_id', $product["id"])
+                ->wherePivot('variation_id', $product["variation_id"] ?? null)
                 ->first();
 
             if ($existingItem) {
-                return response()->json([ "message" => "Its already in the cart." ], 200);
+                return response()->json(["message" => "Its already in the cart."], 200);
             }
 
             $cart->products()->attach([
                 $product["id"] => [
                     "quantity" => $product["quantity"],
+                    "price" => $product["price"],
+                    "variation_id" => $product["variation_id"] ?? null,
                 ],
             ]);
         }

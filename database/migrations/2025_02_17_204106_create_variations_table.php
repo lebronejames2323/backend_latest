@@ -11,14 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('wishlist_product', function (Blueprint $table) {
-            $table->unsignedBigInteger("product_id");
-            $table->unsignedBigInteger("wishlist_id");
-            $table->integer("quantity");
-            $table->primary(['product_id', 'wishlist_id']);
+        Schema::create('variations', function (Blueprint $table) {
+            $table->id();
+            $table->string('variation_name');
+            $table->decimal('variation_price', 10, 2)->nullable();
+            $table->integer('variation_stock')->default(0);
 
+            $table->unsignedBigInteger("product_id");
+            $table->timestamps();
+            $table->softDeletes();
+        
             $table->foreign("product_id")->references("id")->on("products")->onDelete("cascade");
-            $table->foreign("wishlist_id")->references("id")->on("wishlists")->onDelete("cascade");
         });
     }
 
@@ -27,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('wishlist_product');
+        Schema::dropIfExists('variations');
     }
 };

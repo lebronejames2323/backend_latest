@@ -21,9 +21,16 @@ class Product extends Model
         return $this->belongsToMany(Order::class)->withPivot("quantity", "price");
     }
     public function carts(){
-        return $this->belongsToMany(Cart::class)->withPivot("quantity");
+        return $this->belongsToMany(Cart::class)->withPivot("quantity", "price");
     }
     public function wishlists(){
         return $this->belongsToMany(Wishlist::class, 'wishlist_product')->withPivot('quantity');
+    }
+    public function reviews(){
+        return $this->belongsToMany(Review::class, 'review_product')->withPivot('review_text', 'star_rating', 'extension');
+    }
+
+    public function variations(){
+        return $this->hasMany(Variation::class);
     }
 }

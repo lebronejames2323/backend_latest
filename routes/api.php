@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\VariationController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -96,3 +97,6 @@ Route::post('/reviews', [ReviewController::class, 'store'])->middleware("auth:sa
 
 Route::get("/featured-products", [ProductController::class,"featured"]);
 Route::get("/recommended-products", [ProductController::class, "recommended"]);
+
+Route::get('/variations', [VariationController::class, 'index']);
+Route::post('/variations', [VariationController::class, 'store'])->middleware("auth:sanctum");

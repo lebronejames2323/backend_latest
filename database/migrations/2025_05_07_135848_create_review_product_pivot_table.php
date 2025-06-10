@@ -18,6 +18,9 @@ return new class extends Migration
             $table->integer("star_rating")->default(0);
             $table->string("extension")->nullable();
             $table->primary(['product_id', 'review_id']);
+
+            $table->foreign("product_id")->references("id")->on("products")->onDelete("cascade");
+            $table->foreign("review_id")->references("id")->on("reviews")->onDelete("cascade");
         });
     }
 

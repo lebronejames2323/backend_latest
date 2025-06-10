@@ -13,6 +13,10 @@ class Cart extends Model
     }
 
     public function products(){
-        return $this->belongsToMany(Product::class)->withPivot("quantity");
+        return $this->belongsToMany(Product::class, 'cart_product')->withPivot("quantity", "variation_id");
+    }
+
+    public function variations(){
+        return $this->belongsToMany(Variation::class, 'cart_product')->withPivot('quantity', 'price');
     }
 }
