@@ -12,8 +12,6 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libsodium-dev \
     libpq-dev \
-    default-mysql-client \
-    default-libmysqlclient-dev \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     nodejs \
@@ -21,7 +19,6 @@ RUN apt-get update && apt-get install -y \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install \
         pdo_pgsql \
-        pdo_mysql \
         mbstring \
         exif \
         pcntl \
@@ -36,21 +33,23 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy application files
+# Copy your application code
 COPY . .
 
-# Install dependencies
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
+
+# Optional: Compile frontend assets
 RUN npm install && npm run build
 
-# Set permissions
+# Set proper permissions
 RUN chmod -R 775 storage bootstrap/cache && \
     chown -R www-data:www-data storage bootstrap/cache
 
-# Expose the application port
-EXPOSE 8000
+# Expose Laravel dev server port
+EXPOSE 8080
 
-# Run Laravel setup and start the server
+# Run Laravel setup and start the dev server
 CMD php artisan storage:link && \
     php artisan migrate:fresh --seed --force && \
-    php artisan serve --host=0.0.0.0 --port=8000
+    php artisan serve --host=0.0.0.0 --port=8080
