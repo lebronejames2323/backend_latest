@@ -17,7 +17,7 @@ class CartController extends Controller
             return $this->Unauthorized("Unauthorized access.");
         }
 
-        $carts = Cart::with('products')->where('user_id', $userId)->get();
+        $carts = Cart::with('products.variations')->where('user_id', $userId)->get();
 
         if ($carts->isEmpty()) {
             return $this->Ok([], "No carts found for this user.");
@@ -43,7 +43,8 @@ class CartController extends Controller
     public function deleteProduct(Request $request, $cartId)
     {
         $validator = validator()->make($request->all(), [
-            'product_id' => 'required|exists:products,id'
+            'product_id' => 'required|exists:products,id',
+            'variation_id' => 'nullable|exists:variations,id'
         ]);
 
         if ($validator->fails()) {
@@ -58,6 +59,7 @@ class CartController extends Controller
 
         $productExists = $cart->products()
             ->wherePivot('product_id', $request->product_id)
+            ->wherePivot('variation_id', $request->variation_id ?? null)
             ->exists();
 
         if (!$productExists) {
@@ -66,6 +68,7 @@ class CartController extends Controller
 
         $cart->products()->newPivotStatement()
             ->where('product_id', $request->product_id)
+            ->where('variation_id', $request->variation_id ?? null)
             ->delete();
 
         $cart->refresh();
@@ -74,7 +77,7 @@ class CartController extends Controller
             $cart->delete();
         }
 
-        return $this->Ok(null, "Product deleted successfully from the cart!");
+        return $this->Ok(null, "Product variation deleted successfully from the cart!");
     }
 
 
@@ -82,6 +85,7 @@ class CartController extends Controller
     {
         $validator = validator()->make($request->all(), [
             'product_id' => 'required|exists:products,id',
+            'variation_id' => 'nullable|exists:variations,id',
             'quantity' => 'required|integer|min:1|max:1000000',
         ]);
 
@@ -95,19 +99,24 @@ class CartController extends Controller
             return $this->NotFound("Cart not found!");
         }
 
-        $product = $cart->products()->where('product_id', $request->product_id)->first();
+        $product = $cart->products()
+            ->wherePivot('product_id', $request->product_id)
+            ->wherePivot('variation_id', $request->variation_id ?? null)
+            ->first();
 
         if (!$product) {
-            return $this->NotFound("Product not found in cart!");
+            return $this->NotFound("Product with the specified variation not found in cart!");
         }
 
-        $cart->products()->updateExistingPivot($request->product_id, [
+        $cart->products()
+        ->wherePivot('product_id', $request->product_id)
+        ->wherePivot('variation_id', $request->variation_id ?? null)
+        ->updateExistingPivot($request->product_id, [
             'quantity' => $request->quantity,
         ]);
 
         return $this->Ok(null, "Product quantity updated successfully!");
     }
-
 
     public function store(Request $request) {
         $user = Auth::user();
@@ -117,7 +126,7 @@ class CartController extends Controller
             "products.*.id" => "required|exists:products,id",
             "products.*.quantity" => "required|min:1|max:1000000|int",
             "products.*.price" => "required|numeric|max:999999999|min:0",
-            "products.*.variation_id" => "nullable|exists:variations,id",
+            "products.*.variation_id" => "sometimes|nullable|exists:variations,id",
         ]);
 
         if ($validator->fails()) {

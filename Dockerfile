@@ -51,5 +51,5 @@ EXPOSE 8080
 
 # Run Laravel setup and start the dev server
 CMD php artisan storage:link && \
-    php artisan migrate:fresh --seed --force && \
+    php artisan migrate --force && \
     php artisan serve --host=0.0.0.0 --port=8080

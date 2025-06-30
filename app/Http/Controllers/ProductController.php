@@ -19,12 +19,12 @@ class ProductController extends Controller
         $query = Product::with('category')->orderBy('created_at', 'desc');
 
         if (!empty($search)) {
-            $query->where(function ($query) use ($search) {
-                $query->where('name', 'LIKE', '%' . $search . '%')
-                    ->orWhere('description', 'LIKE', '%' . $search . '%')
-                    ->orWhereHas('category', function ($categoryQuery) use ($search) {
-                      $categoryQuery->where('name', 'LIKE', '%' . $search . '%');
-                    });
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(name) ILIKE ?', ['%' . strtolower($search) . '%'])
+                ->orWhereRaw('LOWER(description) ILIKE ?', ['%' . strtolower($search) . '%'])
+                ->orWhereHas('category', function ($categoryQuery) use ($search) {
+                    $categoryQuery->whereRaw('LOWER(name) ILIKE ?', ['%' . strtolower($search) . '%']);
+                });
             });
         }
 
@@ -89,8 +89,9 @@ class ProductController extends Controller
         return $this->Ok($products);
     }
 
-    public function getSalesData() {
-        $sales = Product::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, SUM(price * purchase_count) as monthly_revenue")
+    public function getSalesData()
+    {
+        $sales = Product::selectRaw("TO_CHAR(created_at, 'YYYY-MM') as month, SUM(price * purchase_count) as monthly_revenue")
             ->groupBy("month")
             ->orderBy("month", "ASC")
             ->get();
@@ -98,10 +99,19 @@ class ProductController extends Controller
         $totalRevenue = Product::selectRaw("SUM(price * purchase_count) as total_revenue")->first();
         $totalProductPrice = Product::selectRaw("SUM(price) as total_product_price")->first();
 
-        Log::info('Monthly & Total Revenue Data:', ['monthly_sales' => $sales, 'total_revenue' => $totalRevenue->total_revenue, 'total_product_price' => $totalProductPrice->total_product_price]);
+        Log::info('Monthly & Total Revenue Data:', [
+            'monthly_sales' => $sales,
+            'total_revenue' => $totalRevenue->total_revenue,
+            'total_product_price' => $totalProductPrice->total_product_price
+        ]);
 
-        return response()->json([ 'monthly_sales' => $sales, 'total_revenue' => $totalRevenue->total_revenue, 'total_product_price' => $totalProductPrice->total_product_price ]);
+        return response()->json([
+            'monthly_sales' => $sales,
+            'total_revenue' => $totalRevenue->total_revenue,
+            'total_product_price' => $totalProductPrice->total_product_price
+        ]);
     }
+
 
     public function store(Request $request){
         $validator = validator()->make($request->all(), [
