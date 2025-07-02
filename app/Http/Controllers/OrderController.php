@@ -141,6 +141,15 @@ class OrderController extends Controller
 
         foreach($request->products as $product){
             $p = $products->where("id", $product["id"])->first();
+
+            if ($p->stock <= 0) {
+                return response()->json(["message" => "$p->name is out of stock."], 400);
+            }
+
+            if ($product["quantity"] > $p->stock) {
+                return response()->json(["message" => "Only {$p->stock} units of {$p->name} is available."], 400);
+            }
+
             $items[$product["id"]] = ["price" => $p->price, "quantity" => $product["quantity"]];
             
             $p->stock -= $product["quantity"];

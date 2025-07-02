@@ -99,12 +99,6 @@ class ProductController extends Controller
         $totalRevenue = Product::selectRaw("SUM(price * purchase_count) as total_revenue")->first();
         $totalProductPrice = Product::selectRaw("SUM(price) as total_product_price")->first();
 
-        Log::info('Monthly & Total Revenue Data:', [
-            'monthly_sales' => $sales,
-            'total_revenue' => $totalRevenue->total_revenue,
-            'total_product_price' => $totalProductPrice->total_product_price
-        ]);
-
         return response()->json([
             'monthly_sales' => $sales,
             'total_revenue' => $totalRevenue->total_revenue,

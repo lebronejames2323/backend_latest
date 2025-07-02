@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -136,6 +137,13 @@ class CartController extends Controller
         $cart = $user->carts()->firstOrCreate(["user_id" => $user->id]);
 
         foreach ($request->products as $product) {
+            $productModel = Product::find($product["id"]);
+
+            if (!$productModel || $productModel->stock <= 0) {
+                return response()->json([
+                    "message" => "{$productModel->name} is out of stock."
+                ], 400);
+            }
 
             $existingItem = $cart->products()
                 ->wherePivot('product_id', $product["id"])
