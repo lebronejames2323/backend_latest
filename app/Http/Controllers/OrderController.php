@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -186,6 +187,20 @@ class OrderController extends Controller
 
         $order->update([
             'order_status' => $request->order_status
+        ]);
+
+        $message = match($order->order_status) {
+            'Order Placed'     => "Thank you for your purchase! Your order has been placed.",
+            'Packing Order'     => "Your order is being packed and prepped for shipping.",
+            'Order Shipped'     => "Order shipped, your order is on its way!",
+            'Out for Delivery'  => "Your order is now out for delivery and arriving soon.",
+            'Delivered'         => "Your order has been delivered.",
+        };
+
+        Notification::create([
+            'user_id' => $order->user_id,
+            'title'   => "Order #{$order->order_id}",
+            'message' => $message,
         ]);
 
         return $this->Ok($order, "Order status updated successfully.");

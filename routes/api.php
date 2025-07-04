@@ -4,6 +4,7 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReviewController;
@@ -81,6 +82,11 @@ Route::group(['prefix' => "products"], function (){
     Route::post("/", [ProductController::class,"store"])->middleware("auth:sanctum");
     Route::patch("/{product}", [ProductController::class,"update"])->middleware("auth:sanctum");
     Route::delete("/{productId}", [ProductController::class,"destroy"])->middleware("auth:sanctum");
+});
+
+Route::group(["prefix" => "notifications", "middleware" => "auth:sanctum"], function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::post('/mark-read', [NotificationController::class, 'markAllAsRead']);
 });
 
 
