@@ -60,11 +60,11 @@ class OrderController extends Controller
 
         if (!empty($search)) {
             $query->where(function ($query) use ($search) {
-                $query->where('order_id', 'LIKE', '%' . $search . '%')
-                    ->orWhere('payment_method', 'LIKE', '%' . $search . '%')
-                    ->orWhere('full_name', 'LIKE', '%' . $search . '%')
+                $query->where('order_id', 'ILIKE', '%' . $search . '%')
+                    ->orWhere('payment_method', 'ILIKE', '%' . $search . '%')
+                    ->orWhere('full_name', 'ILIKE', '%' . $search . '%')
                     ->orWhereHas('products', function ($productQuery) use ($search) {
-                        $productQuery->where('name', 'LIKE', '%' . $search . '%');
+                        $productQuery->where('name', 'ILIKE', '%' . $search . '%');
                     });
             });
         }
