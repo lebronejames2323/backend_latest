@@ -6,6 +6,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Storage;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
@@ -91,13 +92,19 @@ class ProductController extends Controller
 
     public function getSalesData()
     {
+        $year = Carbon::now()->year;
+        $startDate = Carbon::create($year, 1, 1)->startOfDay();
+        $endDate = Carbon::create($year, 12, 31)->endOfDay();
+
         $sales = DB::table('order_product')
             ->join('orders', 'order_product.order_id', '=', 'orders.id')
-            ->selectRaw("TO_CHAR(orders.created_at, 'YYYY-MM') as month, SUM(order_product.price * order_product.quantity) as monthly_revenue")
+            ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->whereNull('order_product.deleted_at')
+            ->selectRaw("TO_CHAR(orders.created_at, 'YYYY-MM') as month, SUM(order_product.price * order_product.quantity) as monthly_revenue")
             ->groupBy('month')
             ->orderBy('month', 'ASC')
             ->get();
+
 
         $totalRevenue = Product::selectRaw("SUM(price * purchase_count) as total_revenue")->first();
         $totalProductPrice = Product::selectRaw("SUM(price * stock) as total_product_price")->first();

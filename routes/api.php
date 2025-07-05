@@ -90,12 +90,19 @@ Route::group(["prefix" => "notifications", "middleware" => "auth:sanctum"], func
 });
 
 
+Route::group(["prefix" => "variations", "middleware" => "auth:sanctum"], function () {
+    Route::get('/get', [VariationController::class, 'indexPagination']);
+    Route::post('/post', [VariationController::class, 'store']);
+    Route::patch('/update/{id}', [VariationController::class, 'update']);
+    Route::delete('/delete/{id}', [VariationController::class, 'destroy']);
+});
+
+Route::get('/variations', [VariationController::class, 'index']);
+
+
 Route::get('/reviews', [ReviewController::class, 'getAllReviews']);
 Route::get('/product-ratings', [ReviewController::class, 'getProductRating']);
 Route::post('/reviews', [ReviewController::class, 'store'])->middleware("auth:sanctum");
 
 Route::get("/featured-products", [ProductController::class,"featured"]);
 Route::get("/recommended-products", [ProductController::class, "recommended"]);
-
-Route::get('/variations', [VariationController::class, 'index']);
-Route::post('/variations', [VariationController::class, 'store'])->middleware("auth:sanctum");
