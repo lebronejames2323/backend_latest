@@ -12,9 +12,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::all();
+        $user = auth()->user();
 
-        return $this->Ok($users);
+        return $this->Ok($user);
     }
 
     /**
@@ -22,10 +22,6 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $name = $request->name;
-        $email = $request->email;
-        $password = $request->password;
-
         $validator = validator()->make($request->all(), [
             "name"=> "required|unique:users|min:4|alpha_dash|max:32",
             "email"=> "required|unique:users|email|max:255",

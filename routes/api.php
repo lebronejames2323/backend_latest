@@ -4,6 +4,7 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -100,9 +101,16 @@ Route::group(["prefix" => "variations", "middleware" => "auth:sanctum"], functio
 Route::get('/variations', [VariationController::class, 'index']);
 
 
+Route::group(["prefix" => "messages", "middleware" => "auth:sanctum"], function () {
+    Route::get('/users-with-messages', [MessageController::class, 'usersWithMessages']); // ✅ Move this up
+    Route::get('/{userId}', [MessageController::class, 'index']);
+    Route::post('/', [MessageController::class, 'store']);
+});
+
+
 Route::get('/reviews', [ReviewController::class, 'getAllReviews']);
-Route::get('/product-ratings', [ReviewController::class, 'getProductRating']);
 Route::post('/reviews', [ReviewController::class, 'store'])->middleware("auth:sanctum");
 
+Route::get('/product-ratings', [ReviewController::class, 'getProductRating']);
 Route::get("/featured-products", [ProductController::class,"featured"]);
 Route::get("/recommended-products", [ProductController::class, "recommended"]);
