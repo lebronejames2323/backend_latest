@@ -3,15 +3,14 @@
 namespace App\Jobs;
 
 use App\Models\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use App\Models\Order;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Log;
 
-class UpdateOrderStatusJob implements ShouldQueue
+class UpdateOrderStatusJob
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -30,10 +29,10 @@ class UpdateOrderStatusJob implements ShouldQueue
     {
         try {
             $orders = Order::where('order_status', '!=', 'Delivered')->get();
-            \Log::info('Order status job started at ' . now());
+            Log::info('Order status job started at ' . now());
 
             foreach ($orders as $order) {
-                \Log::info("Processing Order {$order->id} - Current Status: {$order->order_status}");
+                Log::info("Processing Order {$order->id} - Current Status: {$order->order_status}");
 
                 $nextStatus = match ($order->order_status) {
                     'Order Placed'     => 'Packing Order',
@@ -60,12 +59,12 @@ class UpdateOrderStatusJob implements ShouldQueue
                         'message' => $message,
                     ]);
 
-                    \Log::info("→ Order {$order->id} updated to: {$nextStatus}");
+                    Log::info("→ Order {$order->id} updated to: {$nextStatus}");
                 }
             }
         } catch (\Exception $e) {
-            \Log::error("Order status job failed: " . $e->getMessage());
-            \Log::error($e->getTraceAsString());
+            Log::error("Order status job failed: " . $e->getMessage());
+            Log::error($e->getTraceAsString());
         }
     }
 }
