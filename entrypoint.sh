@@ -9,7 +9,7 @@ php artisan migrate --force
 while true
 do
   php artisan schedule:run >> /dev/null 2>&1
-  sleep 3600
+  sleep 60
 done
 ) &
 
