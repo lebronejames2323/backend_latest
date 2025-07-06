@@ -28,18 +28,19 @@ class UpdateOrderStatusJob
     public function handle(): void
     {
         try {
+            $now = now();
             $orders = Order::where('order_status', '!=', 'Delivered')->get();
-            Log::info('Order status job started at ' . now());
 
             foreach ($orders as $order) {
-                Log::info("Processing Order {$order->id} - Current Status: {$order->order_status}");
+                $status = $order->order_status;
+                $created = $order->created_at;
+                $hoursSince = $created->diffInHours($now);
 
-                $nextStatus = match ($order->order_status) {
-                    'Order Placed'     => 'Packing Order',
-                    'Packing Order'    => 'Order Shipped',
-                    'Order Shipped'    => 'Out for Delivery',
-                    'Out for Delivery' => 'Delivered',
-                    default            => null,
+                $nextStatus = match (true) {
+                    $status === 'Order Placed'     && $hoursSince >= 24 => 'Order Shipped',
+                    $status === 'Order Shipped'    && $hoursSince >= 44 => 'Out for Delivery',
+                    $status === 'Out for Delivery' && $hoursSince >= 48 => 'Delivered',
+                    default => null,
                 };
 
                 if ($nextStatus) {
@@ -47,7 +48,6 @@ class UpdateOrderStatusJob
                     $order->save();
 
                     $message = match($nextStatus) {
-                        'Packing Order'    => "Your order is being packed and prepped for shipping.",
                         'Order Shipped'    => "Order shipped, your order is on its way!",
                         'Out for Delivery' => "Your order is now out for delivery and arriving soon.",
                         'Delivered'        => "Your order has been delivered.",
@@ -59,7 +59,6 @@ class UpdateOrderStatusJob
                         'message' => $message,
                     ]);
 
-                    Log::info("→ Order {$order->id} updated to: {$nextStatus}");
                 }
             }
         } catch (\Exception $e) {
@@ -67,4 +66,5 @@ class UpdateOrderStatusJob
             Log::error($e->getTraceAsString());
         }
     }
+
 }
