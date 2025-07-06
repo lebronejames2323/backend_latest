@@ -1,0 +1,13 @@
+name: Trigger Laravel Scheduler
+
+on:
+  schedule:
+    - cron: '*/1 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping-scheduler:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curl your app
+        run: curl -s "https://backendlatest-production.up.railway.app/run-schedule?token=Yasuomain2232"
