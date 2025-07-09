@@ -46,12 +46,10 @@ RUN npm install && npm run build
 RUN chmod -R 775 storage bootstrap/cache && \
     chown -R www-data:www-data storage bootstrap/cache
 
-# Create entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
 # Expose Laravel dev server port
 EXPOSE 8080
 
-# Start Laravel and scheduler
-CMD ["/entrypoint.sh"]
+# Run Laravel setup and start the dev server
+CMD php artisan storage:link && \
+    php artisan migrate --force && \
+    php artisan serve --host=0.0.0.0 --port=8080
